@@ -85,8 +85,8 @@ def cut_kmer(read, kmer_size):
 
 def build_kmer_dict(fastq_file, kmer_size):
     dic={}
-    for read in range(read_fastq(fastq_file)):
-        for kmer in range(cut_kmer(read, kmer_size)):
+    for read in read_fastq(fastq_file):
+        for kmer in cut_kmer(read, kmer_size):
             if(kmer in dict.keys()):
                 dic[kmer]+=1
             else:
