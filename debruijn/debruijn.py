@@ -152,10 +152,10 @@ def simplify_bubbles(graph):
         if len(list_predecessor)>1:
             for i in range(len(graph.nodes())):
                 for j in range(len(graph.nodes())):
-                ancestor_node=nx.lowest_common_ancestor(graph,graph.nodes()[i],graph.nodes()[j])
-                if ancestor_node!= None:
-                    bubble=True
-                    break
+                    ancestor_node=nx.lowest_common_ancestor(graph,graph.nodes()[i],graph.nodes()[j])
+                    if ancestor_node!= None:
+                        bubble=True
+                        break
         if bubble:
             break
     if bubble:
