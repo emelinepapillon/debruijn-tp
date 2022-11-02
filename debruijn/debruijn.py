@@ -150,9 +150,9 @@ def simplify_bubbles(graph):
     for n in graph.nodes():
         list_predecessor=list(graph.predecessors(n))
         if len(list_predecessor)>1:
-            for i in range(len(graph.nodes())):
-                for j in range(len(graph.nodes())):
-                    ancestor_node=nx.lowest_common_ancestor(graph,graph.nodes()[i],graph.nodes()[j])
+            for i in graph.nodes():
+                for j in graph.nodes():
+                    ancestor_node=nx.lowest_common_ancestor(graph,i,j)
                     if ancestor_node!= None:
                         bubble=True
                         break
@@ -164,7 +164,27 @@ def simplify_bubbles(graph):
 
 
 def solve_entry_tips(graph, starting_nodes):
-    pass
+    start=False
+    path_list=[]
+    path_length=[]
+    weight_avg_list=[]
+    for n in graph.nodes():
+        list_predecessor=list(graph.predecessors(n))
+        if len(list_predecessor)>1:
+            for i in list_predecessor:
+                if i in starting_nodes:
+                    start=True
+                    for path in nx.all_simple_paths(graph,i,n):
+                        path_list.append(path)
+                        weight_avg_list.append(path_average_weight(graph,path))
+                        path_length.append(len(path))
+
+
+    if start:
+        graph=select_best_path(graph, path_list, path_length, weight_avg_list, 
+                     delete_entry_node=True, delete_sink_node=False)
+    return graph
+    
 
 def solve_out_tips(graph, ending_nodes):
     pass
