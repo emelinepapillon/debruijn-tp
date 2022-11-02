@@ -17,23 +17,23 @@ import argparse
 import os
 import sys
 import networkx as nx
-import matplotlib
+#import matplotlib
 from operator import itemgetter
 import random
 random.seed(9001)
 from random import randint
 import statistics
 import textwrap
-import matplotlib.pyplot as plt
-matplotlib.use("Agg")
+#import matplotlib.pyplot as plt
+#matplotlib.use("Agg")
 
-__author__ = "Your Name"
+__author__ = "Emeline PAPILLON"
 __copyright__ = "Universite Paris Diderot"
-__credits__ = ["Your Name"]
+__credits__ = ["Emeline PAPILLON"]
 __license__ = "GPL"
 __version__ = "1.0.0"
-__maintainer__ = "Your Name"
-__email__ = "your@email.fr"
+__maintainer__ = "Emeline PAPILLON"
+__email__ = "emelinepap@gmail.com"
 __status__ = "Developpement"
 
 def isfile(path):
@@ -71,11 +71,16 @@ def get_arguments():
 
 
 def read_fastq(fastq_file):
-    pass
+    with open(fastq_file) as files_fastq:
+        for i in files_fastq:
+            yield next(files_fastq).strip("\n")
+            next(files_fastq)
+            next(files_fastq)
 
 
 def cut_kmer(read, kmer_size):
-    pass
+    for i in range(0,len(read)-kmer_size+1):
+        yield read[i,i+kmer_size]
 
 
 def build_kmer_dict(fastq_file, kmer_size):
@@ -152,6 +157,10 @@ def main():
     """
     # Get arguments
     args = get_arguments()
+
+    """for read in read_fastq(args.fastq_file):
+        #print(read)
+        cut_kmer(read, args.kmer_size)"""
 
     # Fonctions de dessin du graphe
     # A decommenter si vous souhaitez visualiser un petit 
