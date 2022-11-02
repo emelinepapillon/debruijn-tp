@@ -145,7 +145,8 @@ def get_contigs(graph, starting_nodes, ending_nodes):
         for n_sink in ending_nodes:
             if nx.has_path(graph,n_entry,n_sink):
                 for path in nx.all_simple_paths(graph,n_entry,n_sink):
-                    l.append([path,len(path)])
+                    global_path+=path
+                    l.append([global_path,len(global_path)])
     return l
 
 def save_contigs(contigs_list, output_file):
