@@ -102,12 +102,41 @@ def build_graph(kmer_dict):
 
 
 def remove_paths(graph, path_list, delete_entry_node, delete_sink_node):
-    pass
-
+    for path in path_list:
+        if delete_entry_node and delete_sink_node:
+            graph.remove_nodes_from(path)
+        elif delete_entry_node:
+            graph.remove_nodes_from(path[:-1])
+        elif delete_sink_node:
+            graph.remove_nodes_from(path[1:])
+        else:
+            graph.remove_nodes_from(path[1:-1])
+    return graph
 
 def select_best_path(graph, path_list, path_length, weight_avg_list, 
                      delete_entry_node=False, delete_sink_node=False):
-    pass
+    for i in range(lan(path_list)):
+        for j in range(len(path_list)):
+            if stdev(weight_avg_list[i],weight_avg_list[j])>0:
+                if weight_avg_list[i]>weight_avg_list[j]:
+                    remove_paths(graph, path_list[j],True,True)
+                else:
+                    remove_paths(graph, path_list[i],True,True)
+            if stdev(weight_avg_list[i],weight_avg_list[j])==0:
+                if stdev(path_length[i],path_length[j])>0:
+                    if path_length[i]>path_length[j]:
+                        remove_paths(graph, path_list[j],True,True)
+                    else:
+                        remove_paths(graph, path_list[i],True,True)
+                if stdev(path_length[i],path_length[j])==0:
+                    r=randint(0,1)
+                    if r==0:
+                        remove_paths(graph, path_list[j],True,True)
+                    else:
+                        remove_paths(graph, path_list[i],True,True)
+
+
+
 
 def path_average_weight(graph, path):
     """Compute the weight of a path"""
