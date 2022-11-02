@@ -126,13 +126,27 @@ def solve_out_tips(graph, ending_nodes):
     pass
 
 def get_starting_nodes(graph):
-    pass
+    entry_nodes=[]
+    for n in graph.nodes():
+        if len(list(graph.predecessors(n)))==0:
+            entry_nodes.append(n)
+    return entry_nodes
 
 def get_sink_nodes(graph):
-    pass
+    sink_nodes=[]
+    for n in graph.nodes():
+        if len(list(graph.successors(n)))==0:
+            sink_nodes.append(n)
+    return sink_nodes
 
 def get_contigs(graph, starting_nodes, ending_nodes):
-    pass
+    l=[]
+    for n_entry in starting_nodes:
+        for n_sink in ending_nodes:
+            if nx.has_path(graph,n_entry,n_sink):
+                for path in nx.all_simple_paths(graph,n_entry,n_sink):
+                    l.append([path,len(path)])
+    return l
 
 def save_contigs(contigs_list, output_file):
     pass
