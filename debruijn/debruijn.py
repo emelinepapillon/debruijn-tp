@@ -119,21 +119,21 @@ def select_best_path(graph, path_list, path_length, weight_avg_list,
         for j in range(len(path_list)):
             if statistics.stdev([weight_avg_list[i],weight_avg_list[j]])>0:
                 if weight_avg_list[i]>weight_avg_list[j]:
-                    remove_paths(graph, path_list[j],True,True)
+                    remove_paths(graph, path_list[j],delete_entry_node,delete_sink_node)
                 else:
-                    remove_paths(graph, path_list[i],True,True)
+                    remove_paths(graph, path_list[i],delete_entry_node,delete_sink_node)
             if statistics.stdev([weight_avg_list[i],weight_avg_list[j]])==0:
                 if statistics.stdev([path_length[i],path_length[j]])>0:
                     if path_length[i]>path_length[j]:
-                        remove_paths(graph, path_list[j],True,True)
+                        remove_paths(graph, path_list[j],delete_entry_node,delete_sink_node)
                     else:
-                        remove_paths(graph, path_list[i],True,True)
+                        remove_paths(graph, path_list[i],delete_entry_node,delete_sink_node)
                 if statistics.stdev([path_length[i],path_length[j]])==0:
                     r=randint(0,1)
                     if r==0:
-                        remove_paths(graph, path_list[j],True,True)
+                        remove_paths(graph, path_list[j],delete_entry_node,delete_sink_node)
                     else:
-                        remove_paths(graph, path_list[i],True,True)
+                        remove_paths(graph, path_list[i],delete_entry_node,delete_sink_node)
 
 
 
