@@ -115,11 +115,11 @@ def remove_paths(graph, path_list, delete_entry_node, delete_sink_node):
 
 def select_best_path(graph, path_list, path_length, weight_avg_list, 
                      delete_entry_node=False, delete_sink_node=False):
-    if statistics.stdev(weight_avg_list)>0
+    if (statistics.stdev(weight_avg_list))>0:
         max_weight_index=weight_avg_list.index(max(weight_avg_list))
         del(path_list[max_weight_index])
         remove_paths(graph,path_list,delete_entry_node,delete_sink_node)
-    elif statistics.stdev(path_length)>0:
+    elif (statistics.stdev(path_length))>0:
         max_length_index=path_length.index(max(path_length))
         del(path_list[max_length_index])
         remove_paths(graph,path_list,delete_entry_node,delete_sink_node)
@@ -130,36 +130,22 @@ def select_best_path(graph, path_list, path_length, weight_avg_list,
     return graph
 
 
-    """
-    for i in range(len(path_list)):
-        for j in range(len(path_list)):
-            if statistics.stdev([weight_avg_list[i],weight_avg_list[j]])>0:
-                if weight_avg_list[i]>weight_avg_list[j]:
-                    remove_paths(graph, path_list[j],delete_entry_node,delete_sink_node)
-                else:
-                    remove_paths(graph, path_list[i],delete_entry_node,delete_sink_node)
-            if statistics.stdev([weight_avg_list[i],weight_avg_list[j]])==0:
-                if statistics.stdev([path_length[i],path_length[j]])>0:
-                    if path_length[i]>path_length[j]:
-                        remove_paths(graph, path_list[j],delete_entry_node,delete_sink_node)
-                    else:
-                        remove_paths(graph, path_list[i],delete_entry_node,delete_sink_node)
-                if statistics.stdev([path_length[i],path_length[j]])==0:
-                    r=randint(0,1)
-                    if r==0:
-                        remove_paths(graph, path_list[j],delete_entry_node,delete_sink_node)
-                    else:
-                        remove_paths(graph, path_list[i],delete_entry_node,delete_sink_node)
-    """
-
-
-
 def path_average_weight(graph, path):
     """Compute the weight of a path"""
     return statistics.mean([d["weight"] for (u, v, d) in graph.subgraph(path).edges(data=True)])
 
 def solve_bubble(graph, ancestor_node, descendant_node):
-    pass
+    path_list=[]
+    weight_avg_list=[]
+    path_length=[]
+    for path in nx.all_simple_paths(graph,ancestor_node,descendant_node):
+        path_list.append(path)
+        weight_avg_list.append(path_average_weight(graph,path))
+        path_length.append(path)
+    graph=select_best_path(graph, path_list, path_length, weight_avg_list, 
+                     delete_entry_node=False, delete_sink_node=False)
+    return graph
+
 
 def simplify_bubbles(graph):
     pass
