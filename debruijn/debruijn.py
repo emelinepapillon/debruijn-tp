@@ -146,13 +146,16 @@ def get_contigs(graph, starting_nodes, ending_nodes):
             if nx.has_path(graph,n_entry,n_sink):
                 for path in nx.all_simple_paths(graph,n_entry,n_sink):
                     contig=path[0]
-                    for node in range(1,len(path)):
-                        contig+=path[node]
+                    for node in path[1:]:
+                        contig+=node[-1]
                     l.append([contig,len(contig)])
     return l
 
 def save_contigs(contigs_list, output_file):
-    pass
+    with open(output_file,"w") as file:
+        for i in range(len(contigs_list)):
+            file.write(">contig_{} len={}\n{}\n".format(i,contigs_list[i][1],
+                textwrap.fill(contigs_list[i][0],width=80)))
 
 
 def draw_graph(graph, graphimg_file):
@@ -188,6 +191,9 @@ def main():
     """for read in read_fastq(args.fastq_file):
         #print(read)
         cut_kmer(read, args.kmer_size)"""
+
+    G=build_graph(build_kmer_dict(args.fastq_file, args.kmer_size))
+    save_contigs(get_contigs(G, get_starting_nodes(G), get_sink_nodes(G)),args.output_file)
 
     # Fonctions de dessin du graphe
     # A decommenter si vous souhaitez visualiser un petit 
