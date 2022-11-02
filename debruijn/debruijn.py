@@ -87,7 +87,7 @@ def build_kmer_dict(fastq_file, kmer_size):
     dic={}
     for read in read_fastq(fastq_file):
         for kmer in cut_kmer(read, kmer_size):
-            if(kmer in dic):
+            if kmer in dic:
                 dic[kmer]+=1
             else:
                 dic[kmer]=1
@@ -97,7 +97,7 @@ def build_kmer_dict(fastq_file, kmer_size):
 def build_graph(kmer_dict):
     G=nx.DiGraph()
     for kmer in kmer_dict:
-        G.add_edge(kmer[:-1],kmer[1:],kmer_dict[kmer])
+        G.add_edge(kmer[:-1],kmer[1:],weight=kmer_dict[kmer])
     return G
 
 
