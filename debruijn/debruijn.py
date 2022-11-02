@@ -148,7 +148,7 @@ def solve_bubble(graph, ancestor_node, descendant_node):
 def simplify_bubbles(graph):
     bubble=False
     for n in graph.nodes():
-        list_predecessor=graph.predecessors(n)
+        list_predecessor=list(graph.predecessors(n))
         if len(list_predecessor)>1:
             for i in range(len(graph.nodes())):
                 for j in range(len(graph.nodes())):
