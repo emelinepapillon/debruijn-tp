@@ -115,7 +115,7 @@ def remove_paths(graph, path_list, delete_entry_node, delete_sink_node):
 
 def select_best_path(graph, path_list, path_length, weight_avg_list, 
                      delete_entry_node=False, delete_sink_node=False):
-    for i in range(lan(path_list)):
+    for i in range(len(path_list)):
         for j in range(len(path_list)):
             if stdev(weight_avg_list[i],weight_avg_list[j])>0:
                 if weight_avg_list[i]>weight_avg_list[j]:
