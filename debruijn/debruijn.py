@@ -13,17 +13,17 @@
 
 """Perform assembly based on debruijn graph."""
 
-import argparse
-import os
-import sys
-import networkx as nx
-#import matplotlib
-from operator import itemgetter
-import random
-random.seed(9001)
 from random import randint
 import statistics
 import textwrap
+import argparse
+import os
+import sys
+import random
+import networkx as nx
+#import matplotlib
+from operator import itemgetter
+random.seed(9001)
 #import matplotlib.pyplot as plt
 #matplotlib.use("Agg")
 
@@ -79,26 +79,26 @@ def read_fastq(fastq_file):
 
 
 def cut_kmer(read, kmer_size):
-    for i in range(0,len(read)-kmer_size+1):
+    for i in range(0, len(read)-kmer_size+1):
         yield read[i:i+kmer_size]
 
 
 def build_kmer_dict(fastq_file, kmer_size):
-    dic={}
+    dic = {}
     for read in read_fastq(fastq_file):
         for kmer in cut_kmer(read, kmer_size):
             if kmer in dic:
-                dic[kmer]+=1
+                dic[kmer] += 1
             else:
-                dic[kmer]=1
+                dic[kmer] = 1
     return dic
 
 
 def build_graph(kmer_dict):
-    G=nx.DiGraph()
+    graph = nx.DiGraph()
     for kmer in kmer_dict:
-        G.add_edge(kmer[:-1],kmer[1:],weight=kmer_dict[kmer])
-    return G
+        graph.add_edge(kmer[:-1], kmer[1:], weight=kmer_dict[kmer])
+    return graph
 
 
 def remove_paths(graph, path_list, delete_entry_node, delete_sink_node):
@@ -113,21 +113,20 @@ def remove_paths(graph, path_list, delete_entry_node, delete_sink_node):
             graph.remove_nodes_from(path[1:-1])
     return graph
 
-def select_best_path(graph, path_list, path_length, weight_avg_list, 
+def select_best_path(graph, path_list, path_length, weight_avg_list,
                      delete_entry_node=False, delete_sink_node=False):
-    print("debut select_best_path")
-    if (statistics.stdev(weight_avg_list))>0:
-        max_weight_index=weight_avg_list.index(max(weight_avg_list))
-        del(path_list[max_weight_index])
-        remove_paths(graph,path_list,delete_entry_node,delete_sink_node)
-    elif (statistics.stdev(path_length))>0:
-        max_length_index=path_length.index(max(path_length))
-        del(path_list[max_length_index])
-        remove_paths(graph,path_list,delete_entry_node,delete_sink_node)
+    if (statistics.stdev(weight_avg_list)) > 0:
+        max_weight_index = weight_avg_list.index(max(weight_avg_list))
+        del path_list[max_weight_index]
+        remove_paths(graph, path_list, delete_entry_node, delete_sink_node)
+    elif (statistics.stdev(path_length)) > 0:
+        max_length_index = path_length.index(max(path_length))
+        del path_list[max_length_index]
+        remove_paths(graph, path_list, delete_entry_node, delete_sink_node)
     else:
-        r=randint(0,len(path_list))
-        del(path_list[r])
-        remove_paths(graph, path_list,delete_entry_node,delete_sink_node)
+        rand = randint(0, len(path_list))
+        del path_list[rand]
+        remove_paths(graph, path_list, delete_entry_node, delete_sink_node)
     return graph
 
 
@@ -136,125 +135,111 @@ def path_average_weight(graph, path):
     return statistics.mean([d["weight"] for (u, v, d) in graph.subgraph(path).edges(data=True)])
 
 def solve_bubble(graph, ancestor_node, descendant_node):
-    print("debut solve_bubble")
-    path_list=[]
-    weight_avg_list=[]
-    path_length=[]
-    print("all_simple_paths")
-    print(nx.all_simple_paths(graph,ancestor_node,descendant_node))
-    for path in nx.all_simple_paths(graph,ancestor_node,descendant_node):
-        print("path")
-        print(path)
+    path_list = []
+    weight_avg_list = []
+    path_length = []
+    for path in nx.all_simple_paths(graph, ancestor_node, descendant_node):
         path_list.append(path)
-        weight_avg_list.append(path_average_weight(graph,path))
+        weight_avg_list.append(path_average_weight(graph, path))
         path_length.append(len(path))
     return select_best_path(graph, path_list, path_length, weight_avg_list)
 
 
 def simplify_bubbles(graph):
-    print("debut simplify_bubbles")
-    bubble=False
-    for n in graph.nodes():
-        print(n)
-        list_predecessor=list(graph.predecessors(n))
-        print(list_predecessor)
-        if len(list_predecessor)>1:
+    bubble = False
+    for node in graph.nodes():
+        list_predecessor = list(graph.predecessors(node))
+        if len(list_predecessor) > 1:
             for i in list_predecessor:
-                for j in list_predecessor[list_predecessor.index(i)+1:len(list_predecessor)]:
-                    ancestor_node=nx.lowest_common_ancestor(graph,i,j)
-                    if ancestor_node != None:
-                        print("i j ")
-                        print(i)
-                        print(j)
-                        print(ancestor_node)
-                        bubble=True
+                for j in list_predecessor[list_predecessor.index(i) + 1:len(list_predecessor)]:
+                    ancestor_node = nx.lowest_common_ancestor(graph, i, j)
+                    if ancestor_node is not None:
+                        bubble = True
                         break
         if bubble:
             break
     if bubble:
-        print("ancestor_node")
-        print(ancestor_node)
-        graph=simplify_bubbles(solve_bubble(graph, ancestor_node, n))
+        graph = simplify_bubbles(solve_bubble(graph, ancestor_node, node))
     return graph
 
 
 def solve_entry_tips(graph, starting_nodes):
-    start=False
-    path_list=[]
-    path_length=[]
-    weight_avg_list=[]
-    for n in graph.nodes():
-        list_predecessor=list(graph.predecessors(n))
-        if len(list_predecessor)>1:
-            for s in starting_nodes:
-                if len(list(nx.all_simple_paths(graph,s,n)))!=0:
-                    start=True
-                    for path in nx.all_simple_paths(graph,s,n):
+    start = False
+    path_list = []
+    path_length = []
+    weight_avg_list = []
+    for node in graph.nodes():
+        list_predecessor = list(graph.predecessors(node))
+        if len(list_predecessor) > 1:
+            for starting_nod in starting_nodes:
+                if len(list(nx.all_simple_paths(graph, starting_nod, node))) != 0:
+                    start = True
+                    for path in nx.all_simple_paths(graph, starting_nod, node):
                         path_list.append(path)
-                        weight_avg_list.append(path_average_weight(graph,path))
+                        weight_avg_list.append(path_average_weight(graph, path))
                         path_length.append(len(path))
     if start:
-        graph=select_best_path(graph, path_list, path_length, weight_avg_list, 
-                     delete_entry_node=True, delete_sink_node=False)
+        graph = select_best_path(graph, path_list, path_length, weight_avg_list,
+                                 delete_entry_node=True, delete_sink_node=False)
     return graph
-    
+
 
 def solve_out_tips(graph, ending_nodes):
-    end=False
-    path_list=[]
-    path_length=[]
-    weight_avg_list=[]
-    for n in graph.nodes():
-        list_successors=list(graph.successors(n))
-        if len(list_successors)>1:
-            for s in ending_nodes:
-                if len(list(nx.all_simple_paths(graph,n,s)))!=0:
-                    end=True
-                    for path in nx.all_simple_paths(graph,n,s):
+    end = False
+    path_list = []
+    path_length = []
+    weight_avg_list = []
+    for node in graph.nodes():
+        list_successors = list(graph.successors(node))
+        if len(list_successors) > 1:
+            for ending_nod in ending_nodes:
+                if len(list(nx.all_simple_paths(graph, node, ending_nod))) != 0:
+                    end = True
+                    for path in nx.all_simple_paths(graph, node, ending_nod):
                         path_list.append(path)
-                        weight_avg_list.append(path_average_weight(graph,path))
+                        weight_avg_list.append(path_average_weight(graph, path))
                         path_length.append(len(path))
     if end:
-        graph=select_best_path(graph, path_list, path_length, weight_avg_list, 
-                     delete_entry_node=False, delete_sink_node=True)
+        graph = select_best_path(graph, path_list, path_length, weight_avg_list,
+                                 delete_entry_node=False, delete_sink_node=True)
     return graph
 
 def get_starting_nodes(graph):
-    entry_nodes=[]
-    for n in graph.nodes():
-        if len(list(graph.predecessors(n)))==0:
-            entry_nodes.append(n)
+    entry_nodes = []
+    for node in graph.nodes():
+        if len(list(graph.predecessors(node))) == 0:
+            entry_nodes.append(node)
     return entry_nodes
 
 def get_sink_nodes(graph):
-    sink_nodes=[]
-    for n in graph.nodes():
-        if len(list(graph.successors(n)))==0:
-            sink_nodes.append(n)
+    sink_nodes = []
+    for node in graph.nodes():
+        if len(list(graph.successors(node))) == 0:
+            sink_nodes.append(node)
     return sink_nodes
 
 def get_contigs(graph, starting_nodes, ending_nodes):
-    l=[]
+    list_contigs = []
     for n_entry in starting_nodes:
         for n_sink in ending_nodes:
-            if nx.has_path(graph,n_entry,n_sink):
-                for path in nx.all_simple_paths(graph,n_entry,n_sink):
-                    contig=path[0]
+            if nx.has_path(graph, n_entry, n_sink):
+                for path in nx.all_simple_paths(graph, n_entry, n_sink):
+                    contig = path[0]
                     for node in path[1:]:
-                        contig+=node[-1]
-                    l.append([contig,len(contig)])
-    return l
+                        contig += node[-1]
+                    list_contigs.append([contig, len(contig)])
+    return list_contigs
 
 def save_contigs(contigs_list, output_file):
-    with open(output_file,"w") as file:
+    with open(output_file, "w") as file:
         for i in range(len(contigs_list)):
-            file.write(">contig_{} len={}\n{}\n".format(i,contigs_list[i][1],
-                textwrap.fill(contigs_list[i][0],width=80)))
+            file.write(">contig_{} len={}\n{}\n".format(i, contigs_list[i][1],
+                                                        textwrap.fill(contigs_list[i][0],
+                                                                      width=80)))
 
 
 def draw_graph(graph, graphimg_file):
-    """Draw the graph
-    """                                    
+    """Draw the graph"""
     fig, ax = plt.subplots()
     elarge = [(u, v) for (u, v, d) in graph.edges(data=True) if d['weight'] > 3]
     #print(elarge)
@@ -265,7 +250,7 @@ def draw_graph(graph, graphimg_file):
     pos = nx.random_layout(graph)
     nx.draw_networkx_nodes(graph, pos, node_size=6)
     nx.draw_networkx_edges(graph, pos, edgelist=elarge, width=6)
-    nx.draw_networkx_edges(graph, pos, edgelist=esmall, width=6, alpha=0.5, 
+    nx.draw_networkx_edges(graph, pos, edgelist=esmall, width=6, alpha=0.5,
                            edge_color='b', style='dashed')
     #nx.draw_networkx(graph, pos, node_size=10, with_labels=False)
     # save image
@@ -282,25 +267,29 @@ def main():
     # Get arguments
     args = get_arguments()
 
-    """for read in read_fastq(args.fastq_file):
+    """
+    #Test for a little file
+    for read in read_fastq(args.fastq_file):
         #print(read)
-        cut_kmer(read, args.kmer_size)"""
+        cut_kmer(read, args.kmer_size)
+    """
 
     #Lecture du fichier et construction du graphe
-    G=build_graph(build_kmer_dict(args.fastq_file, args.kmer_size))
+    graph = build_graph(build_kmer_dict(args.fastq_file, args.kmer_size))
 
     #Résolution des bulles
-    simplify_bubbles(G)
+    simplify_bubbles(graph)
 
     #Résolution des portes d'entrée et de sorties
-    solve_entry_tips(G, get_starting_nodes(G))
-    solve_out_tips(G, get_sink_nodes(G))
+    solve_entry_tips(graph, get_starting_nodes(graph))
+    solve_out_tips(graph, get_sink_nodes(graph))
 
     #Ecriture du/des contigs
-    save_contigs(get_contigs(G, get_starting_nodes(G), get_sink_nodes(G)),args.output_file)
+    save_contigs(get_contigs(graph, get_starting_nodes(graph),
+                             get_sink_nodes(graph)), args.output_file)
 
     # Fonctions de dessin du graphe
-    # A decommenter si vous souhaitez visualiser un petit 
+    # A decommenter si vous souhaitez visualiser un petit
     # graphe
     # Plot the graph
     # if args.graphimg_file:
