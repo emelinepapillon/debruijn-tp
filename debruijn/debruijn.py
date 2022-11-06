@@ -115,6 +115,7 @@ def remove_paths(graph, path_list, delete_entry_node, delete_sink_node):
 
 def select_best_path(graph, path_list, path_length, weight_avg_list, 
                      delete_entry_node=False, delete_sink_node=False):
+    print("debut select_best_path")
     if (statistics.stdev(weight_avg_list))>0:
         max_weight_index=weight_avg_list.index(max(weight_avg_list))
         del(path_list[max_weight_index])
@@ -135,10 +136,15 @@ def path_average_weight(graph, path):
     return statistics.mean([d["weight"] for (u, v, d) in graph.subgraph(path).edges(data=True)])
 
 def solve_bubble(graph, ancestor_node, descendant_node):
+    print("debut solve_bubble")
     path_list=[]
     weight_avg_list=[]
     path_length=[]
+    print("all_simple_paths")
+    print(nx.all_simple_paths(graph,ancestor_node,descendant_node))
     for path in nx.all_simple_paths(graph,ancestor_node,descendant_node):
+        print("path")
+        print(path)
         path_list.append(path)
         weight_avg_list.append(path_average_weight(graph,path))
         path_length.append(len(path))
@@ -146,19 +152,28 @@ def solve_bubble(graph, ancestor_node, descendant_node):
 
 
 def simplify_bubbles(graph):
+    print("debut simplify_bubbles")
     bubble=False
     for n in graph.nodes():
+        print(n)
         list_predecessor=list(graph.predecessors(n))
+        print(list_predecessor)
         if len(list_predecessor)>1:
-            for i in graph.nodes():
-                for j in graph.nodes():
+            for i in list_predecessor:
+                for j in list_predecessor[list_predecessor.index(i)+1:len(list_predecessor)]:
                     ancestor_node=nx.lowest_common_ancestor(graph,i,j)
-                    if ancestor_node!= None:
+                    if ancestor_node != None:
+                        print("i j ")
+                        print(i)
+                        print(j)
+                        print(ancestor_node)
                         bubble=True
                         break
         if bubble:
             break
     if bubble:
+        print("ancestor_node")
+        print(ancestor_node)
         graph=simplify_bubbles(solve_bubble(graph, ancestor_node, n))
     return graph
 
@@ -171,15 +186,13 @@ def solve_entry_tips(graph, starting_nodes):
     for n in graph.nodes():
         list_predecessor=list(graph.predecessors(n))
         if len(list_predecessor)>1:
-            for i in list_predecessor:
-                if i in starting_nodes:
+            for s in starting_nodes:
+                if len(list(nx.all_simple_paths(graph,s,n)))!=0:
                     start=True
-                    for path in nx.all_simple_paths(graph,i,n):
+                    for path in nx.all_simple_paths(graph,s,n):
                         path_list.append(path)
                         weight_avg_list.append(path_average_weight(graph,path))
                         path_length.append(len(path))
-
-
     if start:
         graph=select_best_path(graph, path_list, path_length, weight_avg_list, 
                      delete_entry_node=True, delete_sink_node=False)
@@ -187,7 +200,24 @@ def solve_entry_tips(graph, starting_nodes):
     
 
 def solve_out_tips(graph, ending_nodes):
-    pass
+    end=False
+    path_list=[]
+    path_length=[]
+    weight_avg_list=[]
+    for n in graph.nodes():
+        list_successors=list(graph.successors(n))
+        if len(list_successors)>1:
+            for s in ending_nodes:
+                if len(list(nx.all_simple_paths(graph,n,s)))!=0:
+                    end=True
+                    for path in nx.all_simple_paths(graph,n,s):
+                        path_list.append(path)
+                        weight_avg_list.append(path_average_weight(graph,path))
+                        path_length.append(len(path))
+    if end:
+        graph=select_best_path(graph, path_list, path_length, weight_avg_list, 
+                     delete_entry_node=False, delete_sink_node=True)
+    return graph
 
 def get_starting_nodes(graph):
     entry_nodes=[]
@@ -256,7 +286,17 @@ def main():
         #print(read)
         cut_kmer(read, args.kmer_size)"""
 
+    #Lecture du fichier et construction du graphe
     G=build_graph(build_kmer_dict(args.fastq_file, args.kmer_size))
+
+    #Résolution des bulles
+    simplify_bubbles(G)
+
+    #Résolution des portes d'entrée et de sorties
+    solve_entry_tips(G, get_starting_nodes(G))
+    solve_out_tips(G, get_sink_nodes(G))
+
+    #Ecriture du/des contigs
     save_contigs(get_contigs(G, get_starting_nodes(G), get_sink_nodes(G)),args.output_file)
 
     # Fonctions de dessin du graphe
